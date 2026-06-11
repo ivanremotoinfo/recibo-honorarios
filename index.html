@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recibo de Honorários | SuporteADV</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0d; color: #e0e0e0; padding: 24px 16px; }
+  .container { max-width: 760px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+  h1 { font-size: 1.5rem; color: #008080; margin-bottom: 6px; }
+  .subtitle { font-size: 0.88rem; color: #888; line-height: 1.5; }
+  .brand { font-size: 0.78rem; margin-top: 8px; color: #555; }
+  .brand span.s { color: #8B00FF; font-weight: 700; }
+  .brand span.a { color: #008080; font-weight: 700; }
+
+  .card { background: #111; border-radius: 10px; border: 1px solid #222; border-left: 3px solid #8B00FF; padding: 20px 22px; margin-bottom: 14px; }
+  .card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 16px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+  .field.full { grid-column: 1 / -1; }
+  .field label { display: block; font-size: 0.78rem; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 9px 11px; border: 1.5px solid #333; border-radius: 6px;
+    font-size: 0.92rem; color: #fff; background: #1a1a1a; transition: border-color 0.2s; resize: vertical;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: #008080; box-shadow: 0 0 0 2px rgba(0,128,128,0.2); }
+  .field select option { background: #1a1a1a; }
+
+  button.gerar { background: #008080; color: #fff; border: none; padding: 10px 26px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.07em; cursor: pointer; transition: background 0.18s; text-transform: uppercase; margin-right: 10px; }
+  button.gerar:hover { background: #006666; box-shadow: 0 0 10px rgba(0,128,128,0.4); }
+  button.copiar { background: #1a1a1a; border: 1.5px solid #333; color: #888; padding: 10px 18px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+  button.copiar:hover { border-color: #008080; color: #008080; }
+  button.imprimir { background: #8B00FF; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+  button.imprimir:hover { background: #7000cc; }
+
+  /* Recibo preview */
+  .recibo-wrap { margin-top: 14px; display: none; }
+  .recibo-wrap.visible { display: block; }
+  .recibo-titulo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #008080; font-weight: 700; margin-bottom: 12px; }
+
+  /* Recibo visual */
+  .recibo-box {
+    background: #fff; color: #1a1a1a; border-radius: 8px; overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
+  .recibo-header {
+    background: #1a1a2e; color: #fff; padding: 20px 28px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .rh-escritorio { font-size: 1rem; font-weight: 700; }
+  .rh-oab { font-size: 0.78rem; color: #aaa; margin-top: 2px; }
+  .rh-num { text-align: right; }
+  .rh-num .rn-label { font-size: 0.72rem; color: #aaa; }
+  .rh-num .rn-val { font-size: 1.1rem; font-weight: 700; color: #00ff00; }
+
+  .recibo-body { padding: 28px 28px 20px; }
+  .rb-titulo { text-align: center; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #1a1a2e; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #1a1a2e; }
+  .rb-valor-destaque { text-align: center; background: #f0f8f0; border: 2px solid #1a8a1a; border-radius: 8px; padding: 14px; margin-bottom: 20px; }
+  .rb-valor-destaque .rvd-label { font-size: 0.75rem; color: #555; text-transform: uppercase; margin-bottom: 4px; }
+  .rb-valor-destaque .rvd-valor { font-size: 1.6rem; font-weight: 700; color: #1a6a1a; }
+  .rb-valor-destaque .rvd-extenso { font-size: 0.82rem; color: #444; margin-top: 4px; }
+
+  .rb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  @media (max-width: 480px) { .rb-grid { grid-template-columns: 1fr; } }
+  .rb-campo { border: 1px solid #ddd; border-radius: 5px; padding: 8px 12px; }
+  .rb-campo .rc-label { font-size: 0.65rem; color: #888; text-transform: uppercase; margin-bottom: 2px; }
+  .rb-campo .rc-val { font-size: 0.88rem; font-weight: 700; color: #1a1a1a; }
+
+  .rb-descricao { border: 1px solid #ddd; border-radius: 5px; padding: 10px 14px; margin-bottom: 18px; }
+  .rb-descricao .rc-label { font-size: 0.65rem; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+  .rb-descricao .rc-val { font-size: 0.88rem; color: #333; line-height: 1.5; }
+
+  .rb-footer { border-top: 1px solid #ddd; padding-top: 16px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; }
+  .rf-local { font-size: 0.82rem; color: #555; }
+  .rf-assinatura { text-align: center; }
+  .rf-linha { width: 220px; border-top: 1px solid #333; margin-bottom: 4px; }
+  .rf-nome { font-size: 0.78rem; font-weight: 700; color: #1a1a1a; }
+  .rf-oab { font-size: 0.72rem; color: #555; }
+
+  .recibo-duplicata { border-top: 2px dashed #ccc; margin-top: 4px; }
+
+  .acoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+  .erro { background: #1a0a0a; border: 1px solid #4a1a1a; border-radius: 8px; padding: 14px 16px; color: #ff6666; font-size: 0.88rem; margin-top: 14px; display: none; }
+  .erro.visible { display: block; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .card, .header, .acoes, .recibo-titulo, .erro { display: none !important; }
+    .recibo-wrap { display: block !important; }
+    .recibo-header { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .rb-valor-destaque { background: #f0f8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Recibo de Honorários</h1>
+    <p class="subtitle">Gere recibos de honorários advocatícios profissionais com via do advogado e via do cliente.</p>
+    <p class="brand"><span class="s">suporte</span><span class="a">ADV</span>.br — Ferramentas para Advogados</p>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Dados do Advogado / Escritório</div>
+    <div class="form-grid">
+      <div class="field full"><label>Nome do advogado / escritório</label>
+        <input type="text" id="advNome" placeholder="Ex: João Silva Advogados">
+      </div>
+      <div class="field"><label>OAB nº</label>
+        <input type="text" id="advOAB" placeholder="Ex: 12345/BA">
+      </div>
+      <div class="field"><label>CPF/CNPJ</label>
+        <input type="text" id="advCPF" placeholder="Ex: 000.000.000-00">
+      </div>
+      <div class="field full"><label>Endereço / Cidade</label>
+        <input type="text" id="advEnd" placeholder="Ex: Salvador, Bahia">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Dados do Pagamento</div>
+    <div class="form-grid">
+      <div class="field full"><label>Nome do pagador (cliente)</label>
+        <input type="text" id="cliNome" placeholder="Ex: Maria Oliveira Santos">
+      </div>
+      <div class="field"><label>CPF/CNPJ do pagador</label>
+        <input type="text" id="cliCPF" placeholder="Ex: 111.222.333-44">
+      </div>
+      <div class="field"><label>Valor recebido (R$)</label>
+        <input type="number" id="valor" placeholder="Ex: 3000" step="0.01" min="0" oninput="atualizarExtensao()">
+      </div>
+      <div class="field"><label>Forma de pagamento</label>
+        <select id="formaPag">
+          <option value="PIX">PIX</option>
+          <option value="transferência bancária">Transferência bancária</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cheque">Cheque</option>
+          <option value="depósito bancário">Depósito bancário</option>
+          <option value="cartão">Cartão</option>
+        </select>
+      </div>
+      <div class="field"><label>Nº do recibo</label>
+        <input type="text" id="numRecibo" placeholder="Ex: 001/2025">
+      </div>
+      <div class="field"><label>Data do recibo</label>
+        <input type="date" id="dataRecibo">
+      </div>
+      <div class="field full"><label>Referente a (descrição do serviço)</label>
+        <textarea id="referente" rows="2" placeholder="Ex: Honorários advocatícios referentes ao acompanhamento de reclamação trabalhista, 1ª parcela do contrato firmado em ___/___/____..."></textarea>
+      </div>
+      <div class="field full"><label>Parcela (opcional)</label>
+        <input type="text" id="parcela" placeholder="Ex: 1ª parcela de 3 | Parcela única | Saldo final">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="gerar" onclick="gerar()">GERAR RECIBO</button>
+    </div>
+  </div>
+
+  <div class="erro" id="erro"></div>
+
+  <div class="recibo-wrap" id="recibo-wrap">
+    <div class="recibo-titulo">🧾 Recibo gerado — 2 vias (advogado e cliente)</div>
+    <div class="recibo-box" id="recibo-box"></div>
+    <div class="acoes">
+      <button class="copiar" onclick="copiar()">📋 Copiar dados</button>
+      <button class="imprimir" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function fmtMoeda(v) {
+  if (!v || isNaN(v)) return 'R$ 0,00';
+  return 'R$ ' + parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+function fmtData(d) {
+  if (!d) return new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  return new Date(d+'T12:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+}
+function v(id) { return (document.getElementById(id)?.value || '').trim(); }
+
+const unidades = ['','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez',
+  'onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+const dezenas = ['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+const centenas = ['','cem','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+
+function numPorExtenso(n) {
+  if (n === 0) return 'zero';
+  if (n === 100) return 'cem';
+  let txt = '';
+  if (n >= 1000) { txt += numPorExtenso(Math.floor(n/1000)) + ' mil'; n %= 1000; if (n > 0) txt += ' e '; }
+  if (n >= 100) { txt += centenas[Math.floor(n/100)]; n %= 100; if (n > 0) txt += ' e '; }
+  if (n >= 20) { txt += dezenas[Math.floor(n/10)]; n %= 10; if (n > 0) txt += ' e ' + unidades[n]; }
+  else if (n > 0) txt += unidades[n];
+  return txt;
+}
+
+function valorPorExtenso(v) {
+  if (!v || isNaN(v)) return 'zero reais';
+  const inteiro = Math.floor(v);
+  const cents = Math.round((v - inteiro) * 100);
+  let txt = numPorExtenso(inteiro) + (inteiro === 1 ? ' real' : ' reais');
+  if (cents > 0) txt += ' e ' + numPorExtenso(cents) + (cents === 1 ? ' centavo' : ' centavos');
+  return txt;
+}
+
+function atualizarExtensao() {}
+
+function showErro(msg) {
+  document.getElementById('erro').textContent = msg;
+  document.getElementById('erro').classList.add('visible');
+}
+function hideErro() { document.getElementById('erro').classList.remove('visible'); }
+
+function gerarVia(num, advNome, advOAB, advCPF, advEnd, cliNome, cliCPF, valor, formaPag, numRecibo, dataRecibo, referente, parcela) {
+  const extenso = valorPorExtenso(parseFloat(valor));
+  const viaLabel = num === 1 ? 'Via do Advogado' : 'Via do Cliente';
+  return `
+    <div style="padding:0">
+      <div class="recibo-header">
+        <div>
+          <div class="rh-escritorio">${advNome || 'Advogado/Escritório'}</div>
+          <div class="rh-oab">OAB nº ${advOAB || '___'} | CPF/CNPJ: ${advCPF || '___'}</div>
+          <div class="rh-oab">${advEnd || ''}</div>
+        </div>
+        <div class="rh-num">
+          <div class="rn-label">Recibo nº</div>
+          <div class="rn-val">${numRecibo || '001/2025'}</div>
+          <div class="rn-label" style="margin-top:4px">${viaLabel}</div>
+        </div>
+      </div>
+      <div class="recibo-body">
+        <div class="rb-titulo">Recibo de Honorários Advocatícios</div>
+        <div class="rb-valor-destaque">
+          <div class="rvd-label">Valor recebido</div>
+          <div class="rvd-valor">${fmtMoeda(parseFloat(valor))}</div>
+          <div class="rvd-extenso">${extenso.charAt(0).toUpperCase() + extenso.slice(1)}</div>
+        </div>
+        <div class="rb-grid">
+          <div class="rb-campo"><div class="rc-label">Recebi de</div><div class="rc-val">${cliNome || '___'}</div></div>
+          <div class="rb-campo"><div class="rc-label">CPF/CNPJ do pagador</div><div class="rc-val">${cliCPF || '___'}</div></div>
+          <div class="rb-campo"><div class="rc-label">Forma de pagamento</div><div class="rc-val">${formaPag}</div></div>
+          <div class="rb-campo"><div class="rc-label">Data</div><div class="rc-val">${fmtData(dataRecibo)}</div></div>
+        </div>
+        <div class="rb-descricao">
+          <div class="rc-label">Referente a</div>
+          <div class="rc-val">${referente || '___'}${parcela ? ` — ${parcela}` : ''}</div>
+        </div>
+        <div class="rb-footer">
+          <div class="rf-local">${advEnd || ''}<br>${fmtData(dataRecibo)}</div>
+          <div class="rf-assinatura">
+            <div class="rf-linha"></div>
+            <div class="rf-nome">${advNome || '___'}</div>
+            <div class="rf-oab">OAB nº ${advOAB || '___'}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function gerar() {
+  hideErro();
+  const advNome = v('advNome'); const advOAB = v('advOAB');
+  const advCPF = v('advCPF'); const advEnd = v('advEnd');
+  const cliNome = v('cliNome'); const cliCPF = v('cliCPF');
+  const valor = v('valor'); const formaPag = v('formaPag');
+  const numRecibo = v('numRecibo'); const dataRecibo = v('dataRecibo');
+  const referente = v('referente'); const parcela = v('parcela');
+
+  if (!advNome) return showErro('Informe o nome do advogado/escritório.');
+  if (!cliNome) return showErro('Informe o nome do cliente/pagador.');
+  if (!valor || parseFloat(valor) <= 0) return showErro('Informe o valor recebido.');
+
+  const via1 = gerarVia(1, advNome, advOAB, advCPF, advEnd, cliNome, cliCPF, valor, formaPag, numRecibo, dataRecibo, referente, parcela);
+  const via2 = gerarVia(2, advNome, advOAB, advCPF, advEnd, cliNome, cliCPF, valor, formaPag, numRecibo, dataRecibo, referente, parcela);
+
+  document.getElementById('recibo-box').innerHTML = `
+    ${via1}
+    <div class="recibo-duplicata"></div>
+    ${via2}`;
+
+  document.getElementById('recibo-wrap').classList.add('visible');
+  document.getElementById('recibo-wrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copiar() {
+  const box = document.getElementById('recibo-box');
+  const txt = box.innerText;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector('button.copiar');
+    btn.textContent = '✅ Copiado!';
+    setTimeout(() => btn.textContent = '📋 Copiar dados', 2000);
+  });
+}
+
+// Init
+document.getElementById('dataRecibo').value = new Date().toISOString().split('T')[0];
+const ano = new Date().getFullYear();
+document.getElementById('numRecibo').value = `001/${ano}`;
+</script>
+</body>
+</html>
